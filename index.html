@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>球球捉小鸡</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #f0f8ff;
+      font-family: sans-serif;
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: calc(100vh - 60px);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    #ball, #chicken {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      user-select: none;
+      touch-action: none;
+    }
+
+    #successMessage {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+      color: green;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>帮球球捉到小鸡</h1>
+  <div id="gameArea">
+    <img src="ball.png" id="ball" />
+    <img src="chicken.png" id="chicken" />
+    <div id="successMessage">成功！</div>
+  </div>
+
+  <script>
+    const ball = document.getElementById("ball");
+    const chicken = document.getElementById("chicken");
+    const successMessage = document.getElementById("successMessage");
+
+    let chickenX = 200;
+    let chickenY = 300;
+    let ballX = 50;
+    let ballY = 50;
+    let chickenFrozen = false;
+    const ballSpeed = 1.5;
+
+    function updatePositions() {
+      const dx = chickenX - ballX;
+      const dy = chickenY - ballY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (!chickenFrozen && dist < 300) {
+        // 小鸡逃跑方向 + 一点点随机扰动
+        const runSpeed = 3.2;
+        let angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.4; // 添加扰动
+        chickenX += Math.cos(angle) * runSpeed;
+        chickenY += Math.sin(angle) * runSpeed;
+
+        // 快到边缘时强制往回跑
+        const margin = 30;
+        const maxX = window.innerWidth - 60;
+        const maxY = window.innerHeight - 60;
+
+        if (chickenX < margin) chickenX += 5;
+        if (chickenX > maxX - margin) chickenX -= 5;
+        if (chickenY < margin) chickenY += 5;
+        if (chickenY > maxY - margin) chickenY -= 5;
+      }
+
+      // 球球追小鸡
+      if (dist > 1) {
+        const moveX = (dx / dist) * ballSpeed;
+        const moveY = (dy / dist) * ballSpeed;
+        ballX += moveX;
+        ballY += moveY;
+      }
+
+      // 屏幕边界限制
+      const maxX = window.innerWidth - 60;
+      const maxY = window.innerHeight - 60;
+      chickenX = Math.max(0, Math.min(chickenX, maxX));
+      chickenY = Math.max(0, Math.min(chickenY, maxY));
+      ballX = Math.max(0, Math.min(ballX, maxX));
+      ballY = Math.max(0, Math.min(ballY, maxY));
+
+      ball.style.left = ballX + "px";
+      ball.style.top = ballY + "px";
+      chicken.style.left = chickenX + "px";
+      chicken.style.top = chickenY + "px";
+
+      if (chickenFrozen && dist < 30) {
+        successMessage.style.display = "block";
+        clearInterval(gameLoop);
+      }
+    }
+
+    let gameLoop = setInterval(updatePositions, 16);
+
+    chicken.addEventListener("touchstart", (e) => {
+      chickenFrozen = true;
+    });
+
+    chicken.addEventListener("touchend", (e) => {
+      chickenFrozen = false;
+    });
+  </script>
+</body>
+</html>
